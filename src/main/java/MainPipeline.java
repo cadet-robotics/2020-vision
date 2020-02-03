@@ -26,12 +26,7 @@ public class MainPipeline implements VisionPipeline {
         Mat m = new Mat(240, 320, CV_8UC3, new Scalar(0, 0, 0));
         ArrayList<MatOfPoint> conts = getContours();
         for (int i = 0; i < conts.size(); i++) {
-            try {
-                drawRR(m, Imgproc.fitEllipse(make2f(conts.get(i))));
-            } catch (Exception e) {
-                // Fit Ellipse can error if there are too few points
-                e.printStackTrace();
-            }
+            drawRR(m, safeFitEllipse(conts.get(i)));
             Imgproc.drawContours(m, conts, 0, new Scalar(255, 255, 255), 1);
         }
         m.copyTo(matOut);
@@ -39,6 +34,9 @@ public class MainPipeline implements VisionPipeline {
     }
 
     public static void drawRR(Mat m, RotatedRect r) {
+        if (r == null) {
+            return;
+        }
         Point[] ps = new Point[4];
         r.points(ps);
         for (int i = 0; i < 4; i++) {
@@ -60,5 +58,12 @@ public class MainPipeline implements VisionPipeline {
         MatOfPoint2f out = new MatOfPoint2f();
         Imgproc.approxPolyDP(in, out, e, true);
         return makei(out);
+    }
+
+    public static RotatedRect safeFitEllipse(MatOfPoint in) {
+        if (in.total() < 5) {
+            return null;
+        }
+        return Imgproc.fitEllipse(make2f(in));
     }
 }
