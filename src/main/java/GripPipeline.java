@@ -1,5 +1,3 @@
-package frc.robot;
-
 import edu.wpi.first.vision.VisionPipeline;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
@@ -49,10 +47,13 @@ public class GripPipeline implements VisionPipeline {
 		cvDilate(cvDilateSrc, cvDilateKernel, cvDilateAnchor, cvDilateIterations, cvDilateBordertype, cvDilateBordervalue, cvDilateOutput);
 
 		// Step Blur0:
+		/*
 		Mat blurInput = cvDilateOutput;
 		BlurType blurType = BlurType.get("Box Blur");
 		double blurRadius = 3.6036036036036028;
 		blur(blurInput, blurType, blurRadius, blurOutput);
+		 */
+		blurOutput = cvDilateOutput;
 
 		// Step CV_Threshold0:
 		Mat cvThresholdSrc = blurOutput;
