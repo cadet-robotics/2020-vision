@@ -248,15 +248,11 @@ public final class Main {
     // start image processing on camera 0 if present
     if (cameras.size() >= 1) {
       VisionThread visionThread = new VisionThread(cameras.get(0),
-              new GripPipeline(), pipeline -> {
-        Mat m = new Mat(240, 320, CV_8UC3, new Scalar(0, 0, 0));
-        var conts = pipeline.filterContoursOutput();
-        for (int i = 0; i < conts.size(); i++) {
-          Imgproc.drawContours(m, conts, 0, new Scalar(255, 255, 255), 1);
-        }
-        cv_out.putFrame(m);
-        m.release();
-        // do something with pipeline results
+              new MainPipeline(), pipeline -> {
+              Mat m = new Mat();
+              pipeline.writeDebug(m);
+              cv_out.putFrame(m);
+              m.release();
       });
       /* something like this for GRIP:
       VisionThread visionThread = new VisionThread(cameras.get(0),
