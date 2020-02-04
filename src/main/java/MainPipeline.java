@@ -54,7 +54,7 @@ public class MainPipeline implements VisionPipeline {
 
     public static MatOfPoint approxPolyDP(MatOfPoint inS) {
         MatOfPoint2f in = make2f(inS);
-        double e = 0.1 * Imgproc.arcLength(in, true);
+        double e = 0.01 * Imgproc.arcLength(in, true);
         MatOfPoint2f out = new MatOfPoint2f();
         Imgproc.approxPolyDP(in, out, e, true);
         return makei(out);
@@ -64,6 +64,13 @@ public class MainPipeline implements VisionPipeline {
         if (in.total() < 5) {
             return null;
         }
-        return Imgproc.fitEllipse(make2f(in));
+        /*
+        var ret = ;
+        Point[] pts = new Point[4];
+        ret.points(pts);
+        System.out.println(Imgproc.contourArea(new MatOfPoint2f(pts)) / Imgproc.contourArea(in));
+        */
+        return Imgproc.minAreaRect(make2f(in));
+        //return Imgproc.fitEllipse(make2f(in));
     }
 }
