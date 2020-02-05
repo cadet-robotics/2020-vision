@@ -3,6 +3,8 @@ import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.opencv.core.CvType.CV_8UC3;
 
@@ -14,21 +16,22 @@ public class MainPipeline implements VisionPipeline {
         grip.process(mat);
     }
 
-    public ArrayList<MatOfPoint> getContours() {
-        ArrayList<MatOfPoint> conts = grip.filterContoursOutput();
+    public ArrayList<MatOfPoint2f> getContours() {
+        ArrayList conts = grip.filterContoursOutput();
         for (int i = 0; i < conts.size(); i++) {
-            conts.set(i, approxPolyDP(conts.get(i)));
+            conts.set(i, approxPolyDP((MatOfPoint) conts.get(i)));
         }
-        return conts;
+        return (ArrayList<MatOfPoint2f>) conts;
     }
 
     public void writeDebug(Mat matOut) {
         Mat m = new Mat(240, 320, CV_8UC3, new Scalar(0, 0, 0));
-        ArrayList<MatOfPoint> conts = getContours();
-        for (int i = 0; i < conts.size(); i++) {
-            drawRR(m, safeFitEllipse(conts.get(i)));
-            Imgproc.drawContours(m, conts, 0, new Scalar(255, 255, 255), 1);
-        }
+        ArrayList<MatOfPoint2f> conts = getContours();
+        pullBest(conts).ifPresent((v) -> {
+            drawRR(m, v);
+        });
+        ArrayList<MatOfPoint> conts2 = conts.stream().map(MainPipeline::makei).collect(Collectors.toCollection(ArrayList::new));
+        Imgproc.drawContours(m, conts2, -1, new Scalar(255, 255, 255), 1);
         m.copyTo(matOut);
         m.release();
     }
@@ -52,25 +55,52 @@ public class MainPipeline implements VisionPipeline {
         return new MatOfPoint(pIn.toArray());
     }
 
-    public static MatOfPoint approxPolyDP(MatOfPoint inS) {
+    public static MatOfPoint2f approxPolyDP(MatOfPoint inS) {
         MatOfPoint2f in = make2f(inS);
         double e = 0.01 * Imgproc.arcLength(in, true);
         MatOfPoint2f out = new MatOfPoint2f();
         Imgproc.approxPolyDP(in, out, e, true);
-        return makei(out);
+        return out;
     }
 
-    public static RotatedRect safeFitEllipse(MatOfPoint in) {
-        if (in.total() < 5) {
-            return null;
-        }
-        /*
-        var ret = ;
+    public static Optional<RotatedRect> pullBest(ArrayList<MatOfPoint2f> conts) {
+        return conts.stream()
+                .map((v) -> new Pair<>(v, Imgproc.minAreaRect(v)))
+                .max((p1, p2) -> {
+                    double v1 = rrArea(p1.getRight()) / Imgproc.contourArea(p1.getLeft());
+                    double s1 = Math.abs((v1 - 2.7) / 2.7);
+                    double v2 = rrArea(p2.getRight()) / Imgproc.contourArea(p2.getLeft());
+                    double s2 = Math.abs((v2 - 2.7) / 2.7);
+                    if (s1 < s2) {
+                        return 1;
+                    } else {
+                        return -1;
+                    }
+                })
+                .map(Pair::getRight);
+    }
+
+    public static double rrArea(RotatedRect in) {
         Point[] pts = new Point[4];
-        ret.points(pts);
-        System.out.println(Imgproc.contourArea(new MatOfPoint2f(pts)) / Imgproc.contourArea(in));
-        */
-        return Imgproc.minAreaRect(make2f(in));
-        //return Imgproc.fitEllipse(make2f(in));
+        in.points(pts);
+        return Imgproc.contourArea(new MatOfPoint2f(pts));
+    }
+}
+
+class Pair<T, V> {
+    private T left;
+    private V right;
+
+    public Pair(T leftIn, V rightIn) {
+        left = leftIn;
+        right = rightIn;
+    }
+
+    public T getLeft() {
+        return left;
+    }
+
+    public V getRight() {
+        return right;
     }
 }
