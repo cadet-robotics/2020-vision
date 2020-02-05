@@ -46,17 +46,8 @@ public class GripPipeline implements VisionPipeline {
 		Scalar cvDilateBordervalue = new Scalar(-1);
 		cvDilate(cvDilateSrc, cvDilateKernel, cvDilateAnchor, cvDilateIterations, cvDilateBordertype, cvDilateBordervalue, cvDilateOutput);
 
-		// Step Blur0:
-		/*
-		Mat blurInput = cvDilateOutput;
-		BlurType blurType = BlurType.get("Box Blur");
-		double blurRadius = 3.6036036036036028;
-		blur(blurInput, blurType, blurRadius, blurOutput);
-		 */
-		blurOutput = cvDilateOutput;
-
 		// Step CV_Threshold0:
-		Mat cvThresholdSrc = blurOutput;
+		Mat cvThresholdSrc = cvDilateOutput;
 		double cvThresholdThresh = 40.0;
 		double cvThresholdMaxval = 255.0;
 		int cvThresholdType = Imgproc.THRESH_BINARY;

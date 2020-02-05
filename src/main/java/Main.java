@@ -203,18 +203,6 @@ public final class Main {
   }
 
   /**
-   * Example pipeline.
-   */
-  public static class MyPipeline implements VisionPipeline {
-    public int val;
-
-    @Override
-    public void process(Mat mat) {
-      val += 1;
-    }
-  }
-
-  /**
    * Main.
    */
   public static void main(String... args) {
@@ -249,17 +237,11 @@ public final class Main {
     if (cameras.size() >= 1) {
       VisionThread visionThread = new VisionThread(cameras.get(0),
               new MainPipeline(), pipeline -> {
-              Mat m = new Mat();
-              pipeline.writeDebug(m);
-              cv_out.putFrame(m);
-              m.release();
+        Mat m = new Mat();
+        pipeline.writeDebug(m);
+        cv_out.putFrame(m);
+        m.release();
       });
-      /* something like this for GRIP:
-      VisionThread visionThread = new VisionThread(cameras.get(0),
-              new GripPipeline(), pipeline -> {
-        ...
-      });
-       */
       visionThread.start();
     }
 

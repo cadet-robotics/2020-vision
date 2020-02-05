@@ -3,6 +3,8 @@ import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -29,6 +31,10 @@ public class MainPipeline implements VisionPipeline {
         ArrayList<MatOfPoint2f> conts = getContours();
         pullBest(conts).ifPresent((v) -> {
             drawRR(m, v);
+            Pair<Point, Point> l = getTopLine(v);
+            Point mid = new Point((l.getLeft().x + l.getRight().x) / 2, (l.getLeft().y + l.getRight().y) / 2);
+            //Imgproc.line(m, l.getLeft(), l.getRight(), new Scalar(0, 255, 0), 2);
+            Imgproc.circle(m, mid, 3, new Scalar(0, 255, 0), -1);
         });
         ArrayList<MatOfPoint> conts2 = conts.stream().map(MainPipeline::makei).collect(Collectors.toCollection(ArrayList::new));
         Imgproc.drawContours(m, conts2, -1, new Scalar(255, 255, 255), 1);
@@ -43,7 +49,7 @@ public class MainPipeline implements VisionPipeline {
         Point[] ps = new Point[4];
         r.points(ps);
         for (int i = 0; i < 4; i++) {
-            Imgproc.line(m, ps[i], ps[(i + 1) & 3], new Scalar(255, 0, 0), 2);
+            Imgproc.line(m, ps[i], ps[(i + 1) & 3], new Scalar(255, 0, 0), 1);
         }
     }
 
@@ -84,6 +90,13 @@ public class MainPipeline implements VisionPipeline {
         Point[] pts = new Point[4];
         in.points(pts);
         return Imgproc.contourArea(new MatOfPoint2f(pts));
+    }
+
+    public static Pair<Point, Point> getTopLine(RotatedRect in) {
+        Point[] pts = new Point[4];
+        in.points(pts);
+        Arrays.sort(pts, Comparator.comparingDouble(v -> v.y));
+        return new Pair<>(pts[0], pts[1]);
     }
 }
 
