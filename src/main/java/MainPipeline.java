@@ -38,10 +38,7 @@ public class MainPipeline implements VisionPipeline {
             Pair<Point, Point> ll = getLeftLine(v);
             Imgproc.line(m, ll.getLeft(), ll.getRight(), new Scalar(110, 100, 125), 2);
 
-            double xd = ll.getLeft().x - ll.getRight().x;
-            double yd = ll.getLeft().y - ll.getRight().y;
-
-            double ld = Math.sqrt(xd*xd + yd*yd);
+            double ld = distance(ll);
             double distance = (240*17)/(2 * ld * Math.tan((Math.PI / 180) * (34.3/2)));
 
             Main.distanceEntry.setNumber(distance);
@@ -80,6 +77,16 @@ public class MainPipeline implements VisionPipeline {
         MatOfPoint2f out = new MatOfPoint2f();
         Imgproc.approxPolyDP(in, out, e, true);
         return out;
+    }
+
+    public static double distance(Pair<Point, Point> p) {
+        return distance(p.getLeft(), p.getRight());
+    }
+
+    public static double distance(Point p1, Point p2) {
+        double xd = p1.x - p2.x;
+        double yd = p1.y - p2.y;
+        return Math.sqrt(xd*xd + yd*yd);
     }
 
     public static Optional<RotatedRect> pullBest(ArrayList<MatOfPoint2f> conts) {
