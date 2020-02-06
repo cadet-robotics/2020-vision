@@ -42,7 +42,7 @@ public class MainPipeline implements VisionPipeline {
             double yd = ll.getLeft().y - ll.getRight().y;
 
             double ld = Math.sqrt(xd*xd + yd*yd);
-            double distance = (240*17)/(2 * ld * Math.tan(34.3/2));
+            double distance = (240*17)/(2 * ld * Math.tan((Math.PI / 180) * (34.3/2)));
 
             Main.distanceEntry.setNumber(distance);
 
