@@ -39,7 +39,7 @@ public class MainPipeline implements VisionPipeline {
             Imgproc.line(m, ll.getLeft(), ll.getRight(), new Scalar(110, 100, 125), 2);
 
             double ld = distance(ll);
-            double distance = (240*17)/(2 * ld * Math.tan((Math.PI / 180) * (34.3/2)));
+            double distance = (240*17)/(2 * ld * Math.tan((Math.PI / 180) * (34.3/2))) * (115.0 / 130.0);
 
             Main.distanceEntry.setNumber(distance);
 
@@ -92,17 +92,7 @@ public class MainPipeline implements VisionPipeline {
     public static Optional<RotatedRect> pullBest(ArrayList<MatOfPoint2f> conts) {
         return conts.stream()
                 .map((v) -> new Pair<>(v, Imgproc.minAreaRect(v)))
-                .max((p1, p2) -> {
-                    double v1 = rrArea(p1.getRight()) / Imgproc.contourArea(p1.getLeft());
-                    double s1 = Math.abs((v1 - 2.7) / 2.7);
-                    double v2 = rrArea(p2.getRight()) / Imgproc.contourArea(p2.getLeft());
-                    double s2 = Math.abs((v2 - 2.7) / 2.7);
-                    if (s1 < s2) {
-                        return 1;
-                    } else {
-                        return -1;
-                    }
-                })
+                .max(Comparator.comparingDouble((p) -> rrArea(p.getRight()) / Imgproc.contourArea(p.getLeft())))
                 .map(Pair::getRight);
     }
 
