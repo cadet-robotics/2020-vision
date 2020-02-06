@@ -1,4 +1,3 @@
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.vision.VisionPipeline;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
@@ -14,9 +13,41 @@ import static org.opencv.core.CvType.CV_8UC3;
 public class MainPipeline implements VisionPipeline {
     private GripPipeline grip = new GripPipeline();
 
+    private Mat debugMat = new Mat(240, 320, CV_8UC3, new Scalar(0, 0, 0));
+    private Optional<Target> target = Optional.empty();
+
+    private static final double DIST_TO_HEIGHT_RATIO = Math.tan((Math.PI / 180) * (34.3/2)) * (130.0 / 115.0);
+
     @Override
     public void process(Mat mat) {
         grip.process(mat);
+
+        debugMat.setTo(new Scalar(0, 0, 0));
+        ArrayList<MatOfPoint2f> conts = getContours();
+        target = pullBest(conts).map((r) -> {
+            Point center;
+            {
+                Pair<Point, Point> l = getTopLine(r);
+                center = new Point((l.getLeft().x + l.getRight().x) / 2, (l.getLeft().y + l.getRight().y) / 2);
+                Imgproc.circle(debugMat, center, 3, new Scalar(0, 255, 0), -1);
+            }
+
+            double dist;
+            {
+                drawRR(debugMat, r);
+
+                Pair<Point, Point> ll = getLeftLine(r);
+                Imgproc.line(debugMat, ll.getLeft(), ll.getRight(), new Scalar(110, 100, 125), 2);
+
+                double ld = distance(ll);
+                dist = (240*17)/(2 * ld * DIST_TO_HEIGHT_RATIO);
+            }
+
+            return new Target(dist, center);
+        });
+
+        ArrayList<MatOfPoint> conts2 = conts.stream().map(MainPipeline::makei).collect(Collectors.toCollection(ArrayList::new));
+        Imgproc.drawContours(debugMat, conts2, -1, new Scalar(255, 255, 255), 1);
     }
 
     public ArrayList<MatOfPoint2f> getContours() {
@@ -28,28 +59,7 @@ public class MainPipeline implements VisionPipeline {
     }
 
     public void writeDebug(Mat matOut) {
-        Mat m = new Mat(240, 320, CV_8UC3, new Scalar(0, 0, 0));
-        ArrayList<MatOfPoint2f> conts = getContours();
-        pullBest(conts).ifPresent((v) -> {
-            drawRR(m, v);
-            Pair<Point, Point> l = getTopLine(v);
-            Point mid = new Point((l.getLeft().x + l.getRight().x) / 2, (l.getLeft().y + l.getRight().y) / 2);
-
-            Pair<Point, Point> ll = getLeftLine(v);
-            Imgproc.line(m, ll.getLeft(), ll.getRight(), new Scalar(110, 100, 125), 2);
-
-            double ld = distance(ll);
-            double distance = (240*17)/(2 * ld * Math.tan((Math.PI / 180) * (34.3/2))) * (115.0 / 130.0);
-
-            Main.distanceEntry.setNumber(distance);
-
-            Imgproc.circle(m, mid, 3, new Scalar(0, 255, 0), -1);
-        });
-
-        ArrayList<MatOfPoint> conts2 = conts.stream().map(MainPipeline::makei).collect(Collectors.toCollection(ArrayList::new));
-        Imgproc.drawContours(m, conts2, -1, new Scalar(255, 255, 255), 1);
-        m.copyTo(matOut);
-        m.release();
+        debugMat.copyTo(matOut);
     }
 
     public static void drawRR(Mat m, RotatedRect r) {
@@ -114,23 +124,5 @@ public class MainPipeline implements VisionPipeline {
         in.points(pts);
         Arrays.sort(pts, Comparator.comparingDouble(v -> v.x));
         return new Pair<>(pts[0], pts[1]);
-    }
-}
-
-class Pair<T, V> {
-    private T left;
-    private V right;
-
-    public Pair(T leftIn, V rightIn) {
-        left = leftIn;
-        right = rightIn;
-    }
-
-    public T getLeft() {
-        return left;
-    }
-
-    public V getRight() {
-        return right;
     }
 }
