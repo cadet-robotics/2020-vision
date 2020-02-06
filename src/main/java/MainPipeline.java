@@ -1,3 +1,4 @@
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.vision.VisionPipeline;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
@@ -33,9 +34,21 @@ public class MainPipeline implements VisionPipeline {
             drawRR(m, v);
             Pair<Point, Point> l = getTopLine(v);
             Point mid = new Point((l.getLeft().x + l.getRight().x) / 2, (l.getLeft().y + l.getRight().y) / 2);
-            //Imgproc.line(m, l.getLeft(), l.getRight(), new Scalar(0, 255, 0), 2);
+
+            Pair<Point, Point> ll = getLeftLine(v);
+            Imgproc.line(m, ll.getLeft(), ll.getRight(), new Scalar(110, 100, 125), 2);
+
+            double xd = ll.getLeft().x - ll.getRight().x;
+            double yd = ll.getLeft().y - ll.getRight().y;
+
+            double ld = Math.sqrt(xd*xd + yd*yd);
+            double distance = (240*17)/(2 * ld * Math.tan(34.3/2));
+
+            Main.distanceEntry.setNumber(distance);
+
             Imgproc.circle(m, mid, 3, new Scalar(0, 255, 0), -1);
         });
+
         ArrayList<MatOfPoint> conts2 = conts.stream().map(MainPipeline::makei).collect(Collectors.toCollection(ArrayList::new));
         Imgproc.drawContours(m, conts2, -1, new Scalar(255, 255, 255), 1);
         m.copyTo(matOut);
@@ -96,6 +109,13 @@ public class MainPipeline implements VisionPipeline {
         Point[] pts = new Point[4];
         in.points(pts);
         Arrays.sort(pts, Comparator.comparingDouble(v -> v.y));
+        return new Pair<>(pts[0], pts[1]);
+    }
+
+    public static Pair<Point, Point> getLeftLine(RotatedRect in) {
+        Point[] pts = new Point[4];
+        in.points(pts);
+        Arrays.sort(pts, Comparator.comparingDouble(v -> v.x));
         return new Pair<>(pts[0], pts[1]);
     }
 }

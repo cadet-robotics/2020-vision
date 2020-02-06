@@ -22,6 +22,7 @@ import edu.wpi.cscore.MjpegServer;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.cscore.VideoSource;
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.vision.VisionPipeline;
 import edu.wpi.first.vision.VisionThread;
@@ -202,6 +203,8 @@ public final class Main {
     return camera;
   }
 
+  public static NetworkTableEntry distanceEntry;
+
   /**
    * Main.
    */
@@ -224,6 +227,10 @@ public final class Main {
       System.out.println("Setting up NetworkTables client for team " + team);
       ntinst.startClientTeam(team);
     }
+
+    //Gets network table entry for "standOutFromOtherThings"
+    distanceEntry = ntinst.getEntry("standoutFromOtherThings");
+
 
     // start cameras
     List<VideoSource> cameras = new ArrayList<>();
