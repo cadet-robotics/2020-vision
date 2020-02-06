@@ -18,6 +18,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import edu.wpi.cscore.CvSource;
 import edu.wpi.cscore.MjpegServer;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.cscore.VideoSource;
@@ -203,8 +204,6 @@ public final class Main {
     return camera;
   }
 
-  public static NetworkTableEntry distanceEntry;
-
   /**
    * Main.
    */
@@ -229,7 +228,7 @@ public final class Main {
     }
 
     //Gets network table entry for "standOutFromOtherThings"
-    distanceEntry = ntinst.getEntry("standoutFromOtherThings");
+    NetworkTableEntry distanceEntry = ntinst.getEntry("standoutFromOtherThings");
 
 
     // start cameras
@@ -238,7 +237,8 @@ public final class Main {
       cameras.add(startCamera(cameraConfig));
     }
 
-    var cv_out = CameraServer.getInstance().putVideo("cv_cont", 320, 240);
+    CvSource cv_out = CameraServer.getInstance().putVideo("cv_cont", 320, 240);
+    CvSource cv_overlay = CameraServer.getInstance().putVideo("cv_over", 320, 240);
 
     // start image processing on camera 0 if present
     if (cameras.size() >= 1) {
@@ -248,6 +248,13 @@ public final class Main {
         pipeline.writeDebug(m);
         cv_out.putFrame(m);
         m.release();
+
+        Mat over = pipeline.getCurrentFrame();
+        pipeline.getTarget().ifPresent((t) -> {
+          Imgproc.circle(over, t.getCenter(), 5, new Scalar(255, 0, 0), 1);
+        });
+        cv_overlay.putFrame(over);
+        over.release();
       });
       visionThread.start();
     }

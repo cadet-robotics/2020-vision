@@ -15,11 +15,13 @@ public class MainPipeline implements VisionPipeline {
 
     private Mat debugMat = new Mat(240, 320, CV_8UC3, new Scalar(0, 0, 0));
     private Optional<Target> target = Optional.empty();
+    private Mat currentFrame;
 
     private static final double DIST_TO_HEIGHT_RATIO = Math.tan((Math.PI / 180) * (34.3/2)) * (130.0 / 115.0);
 
     @Override
     public void process(Mat mat) {
+        currentFrame = mat;
         grip.process(mat);
 
         debugMat.setTo(new Scalar(0, 0, 0));
@@ -60,6 +62,14 @@ public class MainPipeline implements VisionPipeline {
 
     public void writeDebug(Mat matOut) {
         debugMat.copyTo(matOut);
+    }
+
+    public Optional<Target> getTarget() {
+        return target;
+    }
+
+    public Mat getCurrentFrame() {
+        return currentFrame;
     }
 
     public static void drawRR(Mat m, RotatedRect r) {
