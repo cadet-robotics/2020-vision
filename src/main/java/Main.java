@@ -251,7 +251,8 @@ public final class Main {
 
         Mat over = pipeline.getCurrentFrame();
         pipeline.getTarget().ifPresent((t) -> {
-          Imgproc.circle(over, t.getCenter(), 5, new Scalar(255, 0, 0), 1);
+          Imgproc.circle(over, t.getCenter(), 5, new Scalar(255, 255, 255), -1);
+          Imgproc.putText(over, Double.toString(t.getDist()), t.getCenter(), 0, 1, new Scalar(255, 255, 255));
         });
         cv_overlay.putFrame(over);
         over.release();
