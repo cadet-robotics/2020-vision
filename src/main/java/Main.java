@@ -228,7 +228,7 @@ public final class Main {
     }
 
     //Gets network table entry for "standOutFromOtherThings"
-    NetworkTableEntry distanceEntry = ntinst.getEntry("standoutFromOtherThings");
+    NetworkTableEntry distanceEntry = ntinst.getEntry("camDist");
 
 
     // start cameras
