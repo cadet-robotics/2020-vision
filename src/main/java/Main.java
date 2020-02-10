@@ -250,11 +250,14 @@ public final class Main {
         m.release();
 
         Mat over = pipeline.getCurrentFrame();
+        double[] d = new double[] {Double.NaN};
         pipeline.getTarget().ifPresent((t) -> {
+          d[0] = t.getDist();
           Imgproc.circle(over, t.getCenter(), 5, new Scalar(255, 255, 255), -1);
           double cm = t.getDist() * 2.54;
           Imgproc.putText(over, Math.round(cm)/100.0 + "m", t.getCenter(), 0, 1, new Scalar(255, 255, 255));
         });
+        distanceEntry.setNumber(d[0]);
         cv_overlay.putFrame(over);
         over.release();
       });
