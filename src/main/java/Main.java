@@ -227,9 +227,9 @@ public final class Main {
       ntinst.startClientTeam(team);
     }
 
-    //Gets network table entry for "standOutFromOtherThings"
     NetworkTableEntry distanceEntry = ntinst.getEntry("camDist");
-
+    NetworkTableEntry hDistEntry = ntinst.getEntry("camHDist");
+    NetworkTableEntry foundTarget = ntinst.getEntry("foundTarget");
 
     // start cameras
     List<VideoSource> cameras = new ArrayList<>();
@@ -250,14 +250,16 @@ public final class Main {
         m.release();
 
         Mat over = pipeline.getCurrentFrame();
-        double[] d = new double[] {Double.NaN};
-        pipeline.getTarget().ifPresent((t) -> {
-          d[0] = t.getDist();
+        pipeline.getTarget().ifPresentOrElse((t) -> {
+          distanceEntry.setNumber(t.getDist());
+          hDistEntry.setNumber(t.getCenter().x - MainPipeline.WIDTH);
+          foundTarget.setBoolean(true);
           Imgproc.circle(over, t.getCenter(), 5, new Scalar(255, 255, 255), -1);
           double cm = t.getDist() * 2.54;
           Imgproc.putText(over, Math.round(cm)/100.0 + "m", t.getCenter(), 0, 1, new Scalar(255, 255, 255));
+        }, () -> {
+          foundTarget.setBoolean(false);
         });
-        distanceEntry.setNumber(d[0]);
         cv_overlay.putFrame(over);
         over.release();
       });

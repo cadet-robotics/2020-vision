@@ -17,4 +17,13 @@ public class Target {
     public Point getCenter() {
         return center;
     }
+
+    /*
+    public double getHorizontalAngle() {
+        double diff = center.x - MainPipeline.WIDTH;
+        double sig = Math.signum(diff);
+        diff *= sig;
+        return Math.asin(diff * Math.sin(MainPipeline.H_FOV / 2) / MainPipeline.WIDTH * 2) * sig;
+    }
+    */
 }

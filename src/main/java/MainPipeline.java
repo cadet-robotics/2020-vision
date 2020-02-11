@@ -17,7 +17,11 @@ public class MainPipeline implements VisionPipeline {
     private Optional<Target> target = Optional.empty();
     private Mat currentFrame;
 
-    private static final double DIST_TO_HEIGHT_RATIO = Math.tan((Math.PI / 180) * (34.3/2)) * (130.0 / 115.0);
+    public static final int WIDTH = 320;
+
+    public static final double H_FOV = 61 * Math.PI / 180;
+    public static final double V_FOV = 34.3 * Math.PI / 180;
+    private static final double DIST_TO_HEIGHT_RATIO = Math.tan(V_FOV / 2) * (130.0 / 115.0);
 
     @Override
     public void process(Mat mat) {
