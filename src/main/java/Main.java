@@ -201,6 +201,9 @@ public final class Main {
       server.setConfigJson(gson.toJson(config.streamConfig));
     }
 
+    // TODO: Not this
+    camera.setExposureManual(10);
+
     return camera;
   }
 
